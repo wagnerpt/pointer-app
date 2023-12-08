@@ -1,3 +1,2 @@
-hash: "{{ lookup('password', '/dev/null chars=ascii_letters,digit length=8', seed=inventory_hostname) | lower }}"
 ---
-# vars file for pointer-app
+hash: "{{ lookup('password', '/dev/null chars=ascii_letters,digit length=8', seed=inventory_hostname) | lower }}"
