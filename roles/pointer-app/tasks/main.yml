@@ -1,2 +1,68 @@
 ---
+- name: Instalando Docker
+  apt:
+    name: docker.io
+    update_cache: yes
+    state: present
+  tags: 
+    - setup
+
+- name: Instalando docker-compose
+  apt:
+    name: docker-compose
+    update_cache: yes
+    state: present
+  tags: 
+    - setup
+
+- name: Habilitar Docker no boot
+  service:
+    name: docker
+    enabled: yes
+    state: started
+  tags:
+    - setup
+
+- name: Parando a aplicacao
+  command: docker-compose down -d
+  register: docker_compose_down
+  args:
+    chdir: /tmp/pointer-app/roles/pointer-app/files/
+  tags:
+    - deploy
+
+- name: Restaurando docker-compose file
+  ansible.builtin.copy:
+    src: /tmp/pointer-app/roles/pointer-app/files/docker-compose.yml.bkp
+    dest: /tmp/pointer-app/roles/pointer-app/files/docker-compose.yml
+    mode: '0644'
+  tags:
+    - deploy
+
+- name: Adicionando hash no docker-compose
+  shell: sed -i 's/HASH/{{ hash }}/' docker-compose.yml
+  args:
+    chdir: /tmp/pointer-app/roles/pointer-app/files/
+  tags:
+    - setup
+    - deploy
+
+- name: Construindo a imagem Docker
+  command: docker build -t pythonapp:{{ hash }} .
+  register: docker_build
+  args:
+    chdir: /tmp/pointer-app/roles/pointer-app/files/
+  tags:
+    - setup
+    - deploy
+
+- name: Subindo a aplicacao
+  command: docker-compose up -d
+  register: docker_compose_up
+  args:
+    chdir: /tmp/pointer-app/roles/pointer-app/files/
+  tags:
+    - setup
+    - deploy
+---
 # tasks file for pointer-app
